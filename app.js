@@ -45,10 +45,9 @@ function row(label, value, mono = false) {
   </div>`;
 }
 
-function flag(label, active, trueIsBad = true) {
-  const isBad = trueIsBad ? active : !active;
-  const cls   = isBad ? 'flag-chip--warn' : 'flag-chip--safe';
-  const dot   = isBad ? '●' : '✓';
+function flag(label, active) {
+  const cls = active ? 'flag-chip--warn' : 'flag-chip--safe';
+  const dot = active ? '●' : '✓';
   return `<span class="flag-chip ${cls}">${dot} ${label}</span>`;
 }
 
@@ -101,7 +100,7 @@ function renderResults(data) {
     flag('Proxy',      risk.is_proxy),
     flag('Tor',        risk.is_tor),
     flag('Datacenter', risk.is_datacenter),
-    flag('Mobile',     risk.is_mobile, false),
+    flag('Mobile',     risk.is_mobile),
   ].join('');
 
   gaugeFill.setAttribute('stroke-dasharray', '0 157');
