@@ -1,0 +1,348 @@
+/* ── Reset & Base ─────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #060b18;
+  --surface:   #0d1526;
+  --surface-2: #111d35;
+  --border:    rgba(99,120,180,.18);
+  --border-h:  rgba(129,140,248,.35);
+  --text:      #e2e8f0;
+  --text-muted:#7f8ea8;
+  --indigo:    #818cf8;
+  --sky:       #38bdf8;
+  --green:     #22c55e;
+  --amber:     #f59e0b;
+  --red:       #ef4444;
+  --radius:    14px;
+  --shadow:    0 8px 32px rgba(0,0,0,.45);
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-x: hidden;
+}
+
+/* ── Animated background orbs ─────────────────────── */
+.bg-orbs { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: .25;
+  animation: drift 18s ease-in-out infinite alternate;
+}
+.orb-1 { width: 520px; height: 520px; background: #3730a3; top: -160px; left: -120px; animation-delay: 0s; }
+.orb-2 { width: 420px; height: 420px; background: #0369a1; bottom: -100px; right: -80px; animation-delay: -6s; }
+.orb-3 { width: 300px; height: 300px; background: #6d28d9; top: 40%; left: 55%; animation-delay: -12s; }
+
+@keyframes drift {
+  from { transform: translate(0, 0) scale(1); }
+  to   { transform: translate(30px, 40px) scale(1.08); }
+}
+
+/* ── Layout ───────────────────────────────────────── */
+main {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 900px;
+  padding: 0 20px 60px;
+  flex: 1;
+}
+
+/* ── Header ───────────────────────────────────────── */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 0 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: .01em;
+  color: var(--text);
+}
+
+/* ── Hero ─────────────────────────────────────────── */
+.hero {
+  text-align: center;
+  margin-top: 56px;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -.02em;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--indigo) 0%, var(--sky) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.subtitle {
+  margin-top: 12px;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+}
+
+/* ── Search Form ──────────────────────────────────── */
+.search-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 36px;
+  align-items: stretch;
+}
+
+.input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0 14px;
+  gap: 10px;
+  transition: border-color .2s, box-shadow .2s;
+}
+
+.input-wrapper:focus-within {
+  border-color: var(--border-h);
+  box-shadow: 0 0 0 3px rgba(129,140,248,.12);
+}
+
+.input-icon { color: var(--text-muted); flex-shrink: 0; }
+
+#ipInput {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-size: 1rem;
+  padding: 16px 0;
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  letter-spacing: .05em;
+}
+
+#ipInput::placeholder { color: var(--text-muted); font-family: 'Segoe UI', system-ui, sans-serif; letter-spacing: 0; }
+
+.my-ip-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--indigo);
+  background: rgba(129,140,248,.10);
+  border: 1px solid rgba(129,140,248,.25);
+  border-radius: 8px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, color .2s;
+  flex-shrink: 0;
+}
+.my-ip-btn:hover { background: rgba(129,140,248,.2); }
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--indigo), var(--sky));
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 0 28px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(129,140,248,.35);
+  transition: opacity .2s, transform .15s, box-shadow .2s;
+  min-width: 110px;
+}
+.search-btn:hover  { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(129,140,248,.45); }
+.search-btn:active { transform: translateY(0); }
+.search-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+/* ── Spinner ──────────────────────────────────────── */
+.spin { animation: spin .75s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Error ────────────────────────────────────────── */
+.error-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 28px;
+  background: rgba(239,68,68,.1);
+  border: 1px solid rgba(239,68,68,.3);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  color: #fca5a5;
+  font-size: .95rem;
+  animation: fadeIn .25s ease;
+}
+
+/* ── Results ──────────────────────────────────────── */
+.results {
+  margin-top: 48px;
+  animation: fadeIn .4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.results-header { display: flex; justify-content: center; margin-bottom: 32px; }
+
+.ip-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--surface);
+  border: 1.5px solid var(--border-h);
+  border-radius: 12px;
+  padding: 14px 32px;
+  box-shadow: var(--shadow);
+}
+.ip-badge-label { font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-muted); }
+.ip-badge-value { font-size: 1.7rem; font-weight: 700; font-family: 'JetBrains Mono','Fira Code',monospace; letter-spacing: .06em; background: linear-gradient(135deg,var(--indigo),var(--sky)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+/* ── Cards Grid ───────────────────────────────────── */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 18px;
+}
+
+/* ── Card ─────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: border-color .2s, transform .2s, box-shadow .2s;
+}
+.card:hover { border-color: var(--border-h); transform: translateY(-3px); box-shadow: 0 14px 40px rgba(0,0,0,.5); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-icon {
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.card-icon--location { background: rgba(56,189,248,.12); color: var(--sky); }
+.card-icon--isp      { background: rgba(129,140,248,.12); color: var(--indigo); }
+.card-icon--risk     { background: rgba(239,68,68,.12);  color: var(--red); }
+
+.card-title { font-size: 1rem; font-weight: 700; }
+
+.card-body { padding: 16px 20px 20px; }
+
+/* ── Data Rows ────────────────────────────────────── */
+.data-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+.data-row:last-child { border-bottom: none; }
+
+.data-label {
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.data-value {
+  font-size: .95rem;
+  font-weight: 500;
+  color: var(--text);
+  text-align: right;
+  word-break: break-all;
+}
+.data-value--mono { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: .85rem; }
+
+/* ── Risk Score Gauge ─────────────────────────────── */
+.risk-score-wrapper { text-align: center; padding: 4px 0 8px; }
+.risk-score-label { font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.risk-score-gauge { width: 140px; margin: 0 auto; }
+
+.gauge-svg { width: 100%; }
+.gauge-number { font-size: 22px; font-weight: 800; fill: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+.gauge-sub { font-size: 9px; fill: var(--text-muted); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+/* ── Risk Flags ───────────────────────────────────── */
+.risk-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.flag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .75rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: .03em;
+}
+.flag-chip--safe    { background: rgba(34,197,94,.12); color: #4ade80; border: 1px solid rgba(34,197,94,.25); }
+.flag-chip--warn    { background: rgba(239,68,68,.12);  color: #fca5a5; border: 1px solid rgba(239,68,68,.25); }
+
+/* ── Footer ───────────────────────────────────────── */
+footer {
+  position: relative;
+  z-index: 1;
+  padding: 20px;
+  color: var(--text-muted);
+  font-size: .82rem;
+  text-align: center;
+}
+footer a { color: var(--indigo); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* ── Responsive ───────────────────────────────────── */
+@media (max-width: 520px) {
+  .search-form { flex-direction: column; }
+  .search-btn  { padding: 14px; }
+  .cards-grid  { grid-template-columns: 1fr; }
+  .card--risk  { grid-column: 1; }
+}

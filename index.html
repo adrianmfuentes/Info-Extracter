@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IP Info Extracter</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-orbs">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <main>
+    <header>
+      <div class="logo">
+        <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="18" cy="18" r="17" stroke="url(#logoGrad)" stroke-width="2"/>
+          <circle cx="18" cy="18" r="6" fill="url(#logoGrad)"/>
+          <path d="M18 1 Q26 10 26 18 Q26 26 18 35 Q10 26 10 18 Q10 10 18 1Z" stroke="url(#logoGrad)" stroke-width="1.5" fill="none"/>
+          <line x1="1" y1="18" x2="35" y2="18" stroke="url(#logoGrad)" stroke-width="1.5"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="0" y1="0" x2="36" y2="36" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#818cf8"/>
+              <stop offset="100%" stop-color="#38bdf8"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <span>IP Info Extracter</span>
+      </div>
+    </header>
+
+    <section class="hero">
+      <h1>Discover Any <span class="gradient-text">IP Address</span></h1>
+      <p class="subtitle">Location, ISP, and risk intelligence — instantly.</p>
+
+      <form class="search-form" id="searchForm">
+        <div class="input-wrapper">
+          <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            id="ipInput"
+            placeholder="Enter an IP address (e.g. 8.8.8.8)"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button type="button" id="myIpBtn" class="my-ip-btn" title="Use my IP">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4.5 8-11.8A8 8 0 0 0 4 10.2C4 17.5 12 22 12 22z"/>
+              <circle cx="12" cy="10" r="3"/>
+            </svg>
+            My IP
+          </button>
+        </div>
+        <button type="submit" class="search-btn" id="searchBtn">
+          <span class="btn-text">Lookup</span>
+          <span class="btn-spinner" hidden>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="spin">
+              <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+            </svg>
+          </span>
+        </button>
+      </form>
+    </section>
+
+    <section class="results" id="results" hidden>
+      <div class="results-header">
+        <div class="ip-badge">
+          <span class="ip-badge-label">IP Address</span>
+          <span class="ip-badge-value" id="resultIp"></span>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+
+        <!-- Location Card -->
+        <div class="card" id="cardLocation">
+          <div class="card-header">
+            <div class="card-icon card-icon--location">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s8-4.5 8-11.8A8 8 0 0 0 4 10.2C4 17.5 12 22 12 22z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <h2 class="card-title">Location</h2>
+          </div>
+          <div class="card-body" id="locationBody"></div>
+        </div>
+
+        <!-- ISP Card -->
+        <div class="card" id="cardIsp">
+          <div class="card-header">
+            <div class="card-icon card-icon--isp">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+                <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+              </svg>
+            </div>
+            <h2 class="card-title">ISP</h2>
+          </div>
+          <div class="card-body" id="ispBody"></div>
+        </div>
+
+        <!-- Risk Card -->
+        <div class="card card--risk" id="cardRisk">
+          <div class="card-header">
+            <div class="card-icon card-icon--risk">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2C20 17.5 12 22 12 22z" opacity=".3" fill="currentColor"/>
+                <path d="M12 9v4M12 17h.01"/>
+              </svg>
+            </div>
+            <h2 class="card-title">Risk Assessment</h2>
+          </div>
+          <div class="card-body">
+            <div class="risk-score-wrapper">
+              <div class="risk-score-label">Risk Score</div>
+              <div class="risk-score-gauge">
+                <svg viewBox="0 0 120 70" class="gauge-svg">
+                  <defs>
+                    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="#22c55e"/>
+                      <stop offset="50%" stop-color="#f59e0b"/>
+                      <stop offset="100%" stop-color="#ef4444"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M10 60 A50 50 0 0 1 110 60" stroke="#1e293b" stroke-width="10" fill="none" stroke-linecap="round"/>
+                  <path id="gaugeFill" d="M10 60 A50 50 0 0 1 110 60" stroke="url(#gaugeGrad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="0 157"/>
+                  <text id="gaugeText" x="60" y="58" text-anchor="middle" class="gauge-number">0</text>
+                  <text x="60" y="70" text-anchor="middle" class="gauge-sub">/100</text>
+                </svg>
+              </div>
+            </div>
+            <div class="risk-flags" id="riskFlags"></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="error-box" id="errorBox" hidden>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      <span id="errorMsg"></span>
+    </div>
+  </main>
+
+  <footer>
+    <span>Powered by <a href="https://ipquery.io" target="_blank" rel="noopener">ipquery.io</a> — free &amp; open source API</span>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
