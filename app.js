@@ -16,12 +16,20 @@ const resultsEl = document.getElementById('results');
 const errorBox  = document.getElementById('errorBox');
 const errorMsg  = document.getElementById('errorMsg');
 
+const singleResultEl = document.getElementById('singleResult');
 const resultIp    = document.getElementById('resultIp');
 const locationBody= document.getElementById('locationBody');
 const ispBody     = document.getElementById('ispBody');
 const riskFlags   = document.getElementById('riskFlags');
 const gaugeFill   = document.getElementById('gaugeFill');
 const gaugeText   = document.getElementById('gaugeText');
+const exportJsonBtn = document.getElementById('exportJsonBtn');
+const exportCsvBtn  = document.getElementById('exportCsvBtn');
+
+const compareResultEl     = document.getElementById('compareResult');
+const compareGrid         = document.getElementById('compareGrid');
+const compareCountEl      = document.getElementById('compareCount');
+const exportCompareCsvBtn = document.getElementById('exportCompareCsvBtn');
 
 const IPV4_REGEX = /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/;
 const IPV6_REGEX = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/;
@@ -29,8 +37,11 @@ const IPV6_REGEX = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:)
 const THEME_KEY  = 'ipInfoExtracter.theme';
 const RECENT_KEY = 'ipInfoExtracter.recentSearches';
 const RECENT_MAX = 8;
+const MAX_COMPARE = 6;
 
 let activeController = null;
+let lastSingleData   = null;
+let lastCompareData  = [];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -92,9 +103,84 @@ function animateGauge(score) {
   }, 16);
 }
 
+function riskLevel(score) {
+  if (score >= 67) return 'high';
+  if (score >= 34) return 'medium';
+  return 'low';
+}
+
+// ── Export ─────────────────────────────────────────────────────────────────
+
+function flattenIpData(data) {
+  const loc  = data.location || {};
+  const isp  = data.isp || {};
+  const risk = data.risk || {};
+  return {
+    ip: data.ip,
+    country: loc.country || '',
+    country_code: loc.country_code || '',
+    state: loc.state || '',
+    city: loc.city || '',
+    zipcode: loc.zipcode || '',
+    latitude: loc.latitude ?? '',
+    longitude: loc.longitude ?? '',
+    timezone: loc.timezone || '',
+    localtime: loc.localtime || '',
+    asn: isp.asn || '',
+    org: isp.org || '',
+    isp: isp.isp || '',
+    risk_score: risk.risk_score ?? '',
+    is_vpn: !!risk.is_vpn,
+    is_proxy: !!risk.is_proxy,
+    is_tor: !!risk.is_tor,
+    is_datacenter: !!risk.is_datacenter,
+    is_mobile: !!risk.is_mobile,
+  };
+}
+
+function toCsv(rows) {
+  if (!rows.length) return '';
+  const headers = Object.keys(rows[0]);
+  const escapeCell = (value) => {
+    const str = String(value);
+    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+  const lines = [headers.join(',')];
+  rows.forEach((row) => lines.push(headers.map((h) => escapeCell(row[h])).join(',')));
+  return lines.join('\n');
+}
+
+function downloadFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+exportJsonBtn.addEventListener('click', () => {
+  if (!lastSingleData) return;
+  downloadFile(`ip-info-${lastSingleData.ip}.json`, JSON.stringify(lastSingleData, null, 2), 'application/json');
+});
+
+exportCsvBtn.addEventListener('click', () => {
+  if (!lastSingleData) return;
+  downloadFile(`ip-info-${lastSingleData.ip}.csv`, toCsv([flattenIpData(lastSingleData)]), 'text/csv');
+});
+
+exportCompareCsvBtn.addEventListener('click', () => {
+  if (!lastCompareData.length) return;
+  downloadFile(`ip-info-compare-${Date.now()}.csv`, toCsv(lastCompareData.map(flattenIpData)), 'text/csv');
+});
+
 // ── Render ─────────────────────────────────────────────────────────────────
 
 function renderResults(data) {
+  lastSingleData = data;
   resultIp.textContent = data.ip;
   copyIpBtn.hidden = false;
   copyIpBtn.dataset.copyText = data.ip;
@@ -144,6 +230,50 @@ function renderResults(data) {
   gaugeText.textContent = '0';
   animateGauge(score);
 
+  singleResultEl.hidden = false;
+  compareResultEl.hidden = true;
+  resultsEl.hidden = false;
+  resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderCompareCard(data) {
+  if (data.error) {
+    return `<div class="card compare-card compare-card--error">
+      <div class="card-header"><span class="compare-ip">${escapeHtml(data.ip)}</span></div>
+      <div class="card-body"><span class="data-label">${escapeHtml(data.error)}</span></div>
+    </div>`;
+  }
+
+  const loc   = data.location || {};
+  const isp   = data.isp || {};
+  const risk  = data.risk || {};
+  const score = risk.risk_score ?? 0;
+
+  return `<div class="card compare-card">
+    <div class="card-header">
+      <span class="compare-ip">${escapeHtml(data.ip)}</span>
+      <span class="compare-risk-badge compare-risk-badge--${riskLevel(score)}">${escapeHtml(score)}</span>
+    </div>
+    <div class="card-body">
+      ${row('Location', [loc.city, loc.state, loc.country].filter(Boolean).join(', '))}
+      ${row('ISP',      isp.isp || isp.org)}
+      ${row('ASN',      isp.asn, true)}
+      <div class="risk-flags">
+        ${flag('VPN',   risk.is_vpn)}
+        ${flag('Proxy', risk.is_proxy)}
+        ${flag('Tor',   risk.is_tor)}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderCompare(dataList) {
+  compareCountEl.textContent = dataList.length;
+  compareGrid.innerHTML = dataList.map(renderCompareCard).join('');
+  lastCompareData = dataList.filter((d) => !d.error);
+
+  singleResultEl.hidden = true;
+  compareResultEl.hidden = false;
   resultsEl.hidden = false;
   resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -172,14 +302,27 @@ themeToggle.addEventListener('click', () => {
 function getRecentSearches() {
   try {
     const list = JSON.parse(localStorage.getItem(RECENT_KEY));
-    return Array.isArray(list) ? list : [];
+    if (!Array.isArray(list)) return [];
+    return list.map((item) =>
+      typeof item === 'string' ? { ip: item, note: '' } : { ip: item.ip, note: item.note || '' }
+    );
   } catch {
     return [];
   }
 }
 
 function saveRecentSearch(ip) {
-  const list = [ip, ...getRecentSearches().filter((item) => item !== ip)].slice(0, RECENT_MAX);
+  const existing = getRecentSearches();
+  const prevNote = existing.find((item) => item.ip === ip)?.note || '';
+  const list = [{ ip, note: prevNote }, ...existing.filter((item) => item.ip !== ip)].slice(0, RECENT_MAX);
+  localStorage.setItem(RECENT_KEY, JSON.stringify(list));
+  renderRecentSearches();
+}
+
+function setRecentNote(ip, note) {
+  const list = getRecentSearches().map((item) =>
+    item.ip === ip ? { ...item, note: note.trim().slice(0, 40) } : item
+  );
   localStorage.setItem(RECENT_KEY, JSON.stringify(list));
   renderRecentSearches();
 }
@@ -192,11 +335,44 @@ function renderRecentSearches() {
   }
   recentSearches.hidden = false;
   recentList.innerHTML = list
-    .map((ip) => `<button type="button" class="recent-chip" data-ip="${escapeHtml(ip)}">${escapeHtml(ip)}</button>`)
+    .map(({ ip, note }) => `
+      <div class="recent-item" data-ip="${escapeHtml(ip)}">
+        <button type="button" class="recent-chip" data-ip="${escapeHtml(ip)}" title="Look up ${escapeHtml(ip)}">
+          ${escapeHtml(ip)}${note ? `<span class="recent-note">· ${escapeHtml(note)}</span>` : ''}
+        </button>
+        <button type="button" class="recent-tag-btn" data-ip="${escapeHtml(ip)}" aria-label="Edit note for ${escapeHtml(ip)}" title="Edit note">${note ? '✎' : '+'}</button>
+      </div>
+    `)
     .join('');
 }
 
+function startEditNote(itemEl, ip) {
+  const current = getRecentSearches().find((item) => item.ip === ip)?.note || '';
+  itemEl.innerHTML = `<input type="text" class="recent-note-input" maxlength="40" placeholder="Add a note…" />`;
+  const input = itemEl.querySelector('input');
+  input.value = current;
+  input.focus();
+  input.select();
+
+  let committed = false;
+  const commit = () => {
+    if (committed) return;
+    committed = true;
+    setRecentNote(ip, input.value);
+  };
+  input.addEventListener('keydown', (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); commit(); }
+    if (ev.key === 'Escape') { ev.preventDefault(); committed = true; renderRecentSearches(); }
+  });
+  input.addEventListener('blur', commit);
+}
+
 recentList.addEventListener('click', (e) => {
+  const tagBtn = e.target.closest('.recent-tag-btn');
+  if (tagBtn) {
+    startEditNote(tagBtn.closest('.recent-item'), tagBtn.dataset.ip);
+    return;
+  }
   const chip = e.target.closest('.recent-chip');
   if (!chip) return;
   const ip = chip.dataset.ip;
@@ -218,6 +394,17 @@ function countryFlag(code) {
 
 // ── Fetch ──────────────────────────────────────────────────────────────────
 
+async function fetchIpData(ip, signal) {
+  const url = `https://api.ipquery.io/${encodeURIComponent(ip)}`;
+  const res = await fetch(url, { signal });
+
+  if (!res.ok) throw new Error(`API returned ${res.status}`);
+
+  const data = await res.json();
+  if (!data || !data.ip) throw new Error('Invalid response from API.');
+  return data;
+}
+
 async function lookupIp(ip, { updateUrl = true } = {}) {
   hideError();
 
@@ -228,19 +415,13 @@ async function lookupIp(ip, { updateUrl = true } = {}) {
   setLoading(true);
 
   try {
-    const url = `https://api.ipquery.io/${encodeURIComponent(ip)}`;
-    const res = await fetch(url, { signal: controller.signal });
-
-    if (!res.ok) throw new Error(`API returned ${res.status}`);
-
-    const data = await res.json();
-
-    if (!data || !data.ip) throw new Error('Invalid response from API.');
+    const data = await fetchIpData(ip, controller.signal);
 
     renderResults(data);
     saveRecentSearch(data.ip);
     if (updateUrl) {
       const params = new URLSearchParams(location.search);
+      params.delete('ips');
       params.set('ip', ip);
       history.replaceState(null, '', `?${params.toString()}`);
     }
@@ -255,14 +436,67 @@ async function lookupIp(ip, { updateUrl = true } = {}) {
   }
 }
 
+async function lookupMultiple(ips, { updateUrl = true } = {}) {
+  hideError();
+
+  if (activeController) activeController.abort();
+  const controller = new AbortController();
+  activeController = controller;
+
+  setLoading(true);
+
+  try {
+    const settled = await Promise.allSettled(ips.map((ip) => fetchIpData(ip, controller.signal)));
+    if (controller.signal.aborted) return;
+
+    const dataList = settled.map((result, i) =>
+      result.status === 'fulfilled' ? result.value : { ip: ips[i], error: result.reason?.message || 'Lookup failed' }
+    );
+
+    renderCompare(dataList);
+    dataList.forEach((d) => { if (!d.error) saveRecentSearch(d.ip); });
+
+    if (updateUrl) {
+      const params = new URLSearchParams(location.search);
+      params.delete('ip');
+      params.set('ips', ips.join(','));
+      history.replaceState(null, '', `?${params.toString()}`);
+    }
+  } finally {
+    if (activeController === controller) {
+      activeController = null;
+      setLoading(false);
+    }
+  }
+}
+
 // ── Events ─────────────────────────────────────────────────────────────────
 
 form.addEventListener('submit', (e) => {
   e.preventDefault();
-  const val = ipInput.value.trim();
-  if (!val) { showError('Please enter an IP address.'); return; }
-  if (!isValidIp(val)) { showError('That doesn\'t look like a valid IP address.'); return; }
-  lookupIp(val);
+  const raw = ipInput.value.trim();
+  if (!raw) { showError('Please enter an IP address.'); return; }
+
+  const parts = [...new Set(raw.split(/[,\s]+/).filter(Boolean))];
+
+  if (parts.length === 1) {
+    if (!isValidIp(parts[0])) { showError('That doesn\'t look like a valid IP address.'); return; }
+    lookupIp(parts[0]);
+    return;
+  }
+
+  if (parts.length > MAX_COMPARE) {
+    showError(`You can compare up to ${MAX_COMPARE} IP addresses at once.`);
+    return;
+  }
+
+  const invalid = parts.filter((p) => !isValidIp(p));
+  if (invalid.length) {
+    showError(`Invalid IP address${invalid.length > 1 ? 'es' : ''}: ${invalid.join(', ')}`);
+    return;
+  }
+
+  lookupMultiple(parts);
 });
 
 myIpBtn.addEventListener('click', async () => {
@@ -323,9 +557,17 @@ document.addEventListener('keydown', (e) => {
   initTheme();
   renderRecentSearches();
 
-  const params  = new URLSearchParams(location.search);
-  const ipParam = params.get('ip');
-  if (ipParam && isValidIp(ipParam.trim())) {
+  const params   = new URLSearchParams(location.search);
+  const ipsParam = params.get('ips');
+  const ipParam  = params.get('ip');
+
+  if (ipsParam) {
+    const parts = [...new Set(ipsParam.split(',').map((s) => s.trim()).filter(Boolean))];
+    if (parts.length > 1 && parts.length <= MAX_COMPARE && parts.every(isValidIp)) {
+      ipInput.value = parts.join(', ');
+      lookupMultiple(parts, { updateUrl: false });
+    }
+  } else if (ipParam && isValidIp(ipParam.trim())) {
     ipInput.value = ipParam.trim();
     lookupIp(ipParam.trim(), { updateUrl: false });
   }

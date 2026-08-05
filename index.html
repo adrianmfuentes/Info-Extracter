@@ -56,7 +56,7 @@
           <input
             type="text"
             id="ipInput"
-            placeholder="Enter an IP address (e.g. 8.8.8.8) — press / to focus"
+            placeholder="Enter an IP, or several separated by commas to compare — press / to focus"
             autocomplete="off"
             spellcheck="false"
             inputmode="text"
@@ -87,89 +87,107 @@
     </section>
 
     <section class="results" id="results" hidden aria-live="polite">
-      <div class="results-header">
-        <div class="ip-badge">
-          <span class="ip-badge-label">IP Address</span>
-          <div class="ip-badge-row">
-            <span class="ip-badge-value" id="resultIp"></span>
-            <button type="button" class="copy-btn" id="copyIpBtn" aria-label="Copy IP address" title="Copy IP address" hidden>
-              <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <rect x="9" y="9" width="13" height="13" rx="2"/>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-              </svg>
-              <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path d="M20 6L9 17l-5-5"/>
-              </svg>
-            </button>
+
+      <!-- Single IP result -->
+      <div id="singleResult">
+        <div class="results-header">
+          <div class="ip-badge">
+            <span class="ip-badge-label">IP Address</span>
+            <div class="ip-badge-row">
+              <span class="ip-badge-value" id="resultIp"></span>
+              <button type="button" class="copy-btn" id="copyIpBtn" aria-label="Copy IP address" title="Copy IP address" hidden>
+                <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <rect x="9" y="9" width="13" height="13" rx="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <svg class="check-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M20 6L9 17l-5-5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div class="export-actions">
+            <button type="button" class="export-btn" id="exportJsonBtn">Export JSON</button>
+            <button type="button" class="export-btn" id="exportCsvBtn">Export CSV</button>
           </div>
         </div>
-      </div>
 
-      <div class="cards-grid">
+        <div class="cards-grid">
 
-        <!-- Location Card -->
-        <div class="card" id="cardLocation">
-          <div class="card-header">
-            <div class="card-icon card-icon--location">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s8-4.5 8-11.8A8 8 0 0 0 4 10.2C4 17.5 12 22 12 22z"/>
-                <circle cx="12" cy="10" r="3"/>
-              </svg>
-            </div>
-            <h2 class="card-title">Location</h2>
-          </div>
-          <div class="card-body" id="locationBody"></div>
-        </div>
-
-        <!-- ISP Card -->
-        <div class="card" id="cardIsp">
-          <div class="card-header">
-            <div class="card-icon card-icon--isp">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
-                <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
-              </svg>
-            </div>
-            <h2 class="card-title">ISP</h2>
-          </div>
-          <div class="card-body" id="ispBody"></div>
-        </div>
-
-        <!-- Risk Card -->
-        <div class="card card--risk" id="cardRisk">
-          <div class="card-header">
-            <div class="card-icon card-icon--risk">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2C20 17.5 12 22 12 22z" opacity=".3" fill="currentColor"/>
-                <path d="M12 9v4M12 17h.01"/>
-              </svg>
-            </div>
-            <h2 class="card-title">Risk Assessment</h2>
-          </div>
-          <div class="card-body">
-            <div class="risk-score-wrapper">
-              <div class="risk-score-label">Risk Score</div>
-              <div class="risk-score-gauge">
-                <svg viewBox="0 0 120 70" class="gauge-svg">
-                  <defs>
-                    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                      <stop offset="0%" stop-color="#22c55e"/>
-                      <stop offset="50%" stop-color="#f59e0b"/>
-                      <stop offset="100%" stop-color="#ef4444"/>
-                    </linearGradient>
-                  </defs>
-                  <path d="M10 60 A50 50 0 0 1 110 60" stroke="#1e293b" stroke-width="10" fill="none" stroke-linecap="round"/>
-                  <path id="gaugeFill" d="M10 60 A50 50 0 0 1 110 60" stroke="url(#gaugeGrad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="0 157"/>
-                  <text id="gaugeText" x="60" y="58" text-anchor="middle" class="gauge-number">0</text>
-                  <text x="60" y="70" text-anchor="middle" class="gauge-sub">/100</text>
+          <!-- Location Card -->
+          <div class="card" id="cardLocation">
+            <div class="card-header">
+              <div class="card-icon card-icon--location">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4.5 8-11.8A8 8 0 0 0 4 10.2C4 17.5 12 22 12 22z"/>
+                  <circle cx="12" cy="10" r="3"/>
                 </svg>
               </div>
+              <h2 class="card-title">Location</h2>
             </div>
-            <div class="risk-flags" id="riskFlags"></div>
+            <div class="card-body" id="locationBody"></div>
           </div>
-        </div>
 
+          <!-- ISP Card -->
+          <div class="card" id="cardIsp">
+            <div class="card-header">
+              <div class="card-icon card-icon--isp">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/>
+                  <line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/>
+                </svg>
+              </div>
+              <h2 class="card-title">ISP</h2>
+            </div>
+            <div class="card-body" id="ispBody"></div>
+          </div>
+
+          <!-- Risk Card -->
+          <div class="card card--risk" id="cardRisk">
+            <div class="card-header">
+              <div class="card-icon card-icon--risk">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2C20 17.5 12 22 12 22z" opacity=".3" fill="currentColor"/>
+                  <path d="M12 9v4M12 17h.01"/>
+                </svg>
+              </div>
+              <h2 class="card-title">Risk Assessment</h2>
+            </div>
+            <div class="card-body">
+              <div class="risk-score-wrapper">
+                <div class="risk-score-label">Risk Score</div>
+                <div class="risk-score-gauge">
+                  <svg viewBox="0 0 120 70" class="gauge-svg">
+                    <defs>
+                      <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#22c55e"/>
+                        <stop offset="50%" stop-color="#f59e0b"/>
+                        <stop offset="100%" stop-color="#ef4444"/>
+                      </linearGradient>
+                    </defs>
+                    <path d="M10 60 A50 50 0 0 1 110 60" stroke="#1e293b" stroke-width="10" fill="none" stroke-linecap="round"/>
+                    <path id="gaugeFill" d="M10 60 A50 50 0 0 1 110 60" stroke="url(#gaugeGrad)" stroke-width="10" fill="none" stroke-linecap="round" stroke-dasharray="0 157"/>
+                    <text id="gaugeText" x="60" y="58" text-anchor="middle" class="gauge-number">0</text>
+                    <text x="60" y="70" text-anchor="middle" class="gauge-sub">/100</text>
+                  </svg>
+                </div>
+              </div>
+              <div class="risk-flags" id="riskFlags"></div>
+            </div>
+          </div>
+
+        </div>
       </div>
+
+      <!-- Multi-IP comparison -->
+      <div id="compareResult" hidden>
+        <div class="results-header compare-header">
+          <h2 class="compare-title">Comparing <span id="compareCount"></span> IPs</h2>
+          <button type="button" class="export-btn" id="exportCompareCsvBtn">Export CSV</button>
+        </div>
+        <div class="compare-grid" id="compareGrid"></div>
+      </div>
+
     </section>
 
     <div class="error-box" id="errorBox" role="alert" aria-live="assertive" hidden>
